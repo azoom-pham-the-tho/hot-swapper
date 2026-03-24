@@ -1,0 +1,59 @@
+name: Release Chrome Extension
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Lấy version từ tag
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Đóng gói extension
+        run: |
+          zip -r HotSwapper_${{ steps.version.outputs.VERSION }}.zip \
+            manifest.json popup.html popup.js icons/
+
+      - name: Lấy mô tả từ manifest
+        id: desc
+        run: |
+          DESC=$(jq -r '.description' manifest.json)
+          VER=$(jq -r '.version' manifest.json)
+          echo "DESC=$DESC" >> $GITHUB_OUTPUT
+          echo "VER=$VER" >> $GITHUB_OUTPUT
+
+      - name: Tạo GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Hot-Swapper ${{ steps.version.outputs.VERSION }}"
+          body: |
+            ## 🔥 Hot-Swapper ${{ steps.version.outputs.VERSION }}
+
+            ${{ steps.desc.outputs.DESC }}
+
+            ### 📦 Cài đặt
+            1. Tải file `HotSwapper_${{ steps.version.outputs.VERSION }}.zip` bên dưới
+            2. Giải nén ra thư mục
+            3. Mở `chrome://extensions` → bật **Developer mode**
+            4. Bấm **Load unpacked** → chọn thư mục vừa giải nén
+            5. Done ✅
+
+            ### ✨ Tính năng
+            - Lưu & chuyển đổi nhanh tài khoản trên mọi trang web
+            - Cookie fingerprint matching tự động nhận diện account
+            - Tree UI nhóm theo site
+            - Export/Import backup với smart merge
+            - Cross-site swap
+          files: HotSwapper_${{ steps.version.outputs.VERSION }}.zip
+          draft: false
+          prerelease: false
