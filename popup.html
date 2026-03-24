@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hot-Swapper</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg-primary: #0f0f14;
+        --bg-secondary: #16161e;
+        --bg-card: #1c1c27;
+        --bg-hover: #252540;
+        --text-primary: #e8e8f0;
+        --text-secondary: #8b8ba3;
+        --text-dim: #5a5a72;
+        --accent-blue: #5b8def;
+        --accent-green: #34d399;
+        --accent-orange: #ffa233;
+        --accent-red: #f87171;
+        --accent-purple: #8b5cf6;
+        --border: rgba(255, 255, 255, 0.06);
+        --radius: 8px;
+      }
+
+      body {
+        width: 360px;
+        max-height: 520px;
+        overflow-y: auto;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      body::-webkit-scrollbar {
+        width: 3px;
+      }
+      body::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 2px;
+      }
+
+      /* ===== HEADER ===== */
+      .header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        background: linear-gradient(135deg, #1a1a2e, #16213e);
+        border-bottom: 1px solid var(--border);
+      }
+      .header__logo {
+        font-size: 18px;
+      }
+      .header__text {
+        flex: 1;
+      }
+      .header__title {
+        font-size: 13px;
+        font-weight: 700;
+        color: #fff;
+      }
+      .header__origin {
+        font-size: 10px;
+        color: var(--text-secondary);
+        margin-top: 1px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .header__dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--accent-green);
+        display: inline-block;
+      }
+
+      /* ===== CURRENT ACCOUNT (compact) ===== */
+      .current-account {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 14px;
+        background: rgba(52, 211, 153, 0.06);
+        border-bottom: 1px solid var(--border);
+        font-size: 11px;
+      }
+      .current-account__icon {
+        font-size: 13px;
+        opacity: 0.6;
+      }
+      .current-account__info {
+        flex: 1;
+      }
+      .current-account__label {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        color: var(--text-dim);
+      }
+      .current-account__name {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--accent-green);
+      }
+
+      /* ===== SAVE SECTION (compact) ===== */
+      .save-section {
+        padding: 10px 14px;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border);
+      }
+      .save-section__row {
+        display: flex;
+        gap: 6px;
+        align-items: center;
+      }
+
+      .input {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text-primary);
+        padding: 8px 10px;
+        font-size: 12px;
+        outline: none;
+        transition: border-color 0.2s;
+        flex: 1;
+        min-width: 0;
+      }
+      .input:focus {
+        border-color: var(--accent-purple);
+      }
+      .input::placeholder {
+        color: var(--text-dim);
+      }
+
+      /* ===== BUTTONS ===== */
+      .btn {
+        border: none;
+        border-radius: var(--radius);
+        cursor: pointer;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: all 0.15s;
+        white-space: nowrap;
+        font-size: 11px;
+      }
+      .btn:active:not(:disabled) {
+        transform: scale(0.96);
+      }
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .btn--primary {
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        color: #fff;
+        padding: 8px 14px;
+        font-size: 12px;
+      }
+      .btn--primary:hover:not(:disabled) {
+        background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      }
+
+      .btn--save {
+        flex: 1;
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--accent-green);
+        border: 1px solid rgba(52, 211, 153, 0.25);
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+      .btn--save:hover:not(:disabled) {
+        background: rgba(52, 211, 153, 0.25);
+      }
+
+      .btn--add {
+        flex: 1;
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        color: #fff;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+      .btn--add:hover:not(:disabled) {
+        background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      }
+
+      .btn--use {
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--accent-green);
+        border: 1px solid rgba(52, 211, 153, 0.2);
+        padding: 3px 8px;
+        font-size: 10px;
+      }
+      .btn--use:hover:not(:disabled) {
+        background: rgba(52, 211, 153, 0.25);
+      }
+
+      .btn--delete {
+        background: transparent;
+        color: var(--text-dim);
+        padding: 3px 5px;
+        font-size: 10px;
+        opacity: 0.5;
+      }
+      .btn--delete:hover:not(:disabled) {
+        color: var(--accent-red);
+        opacity: 1;
+      }
+
+      /* ===== SITE GROUP (Tree) ===== */
+      .site-group {
+        border-bottom: 1px solid var(--border);
+      }
+      .site-group__header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .site-group__count {
+        margin-left: auto;
+        background: rgba(139, 92, 246, 0.12);
+        color: var(--accent-purple);
+        font-size: 9px;
+        padding: 1px 5px;
+        border-radius: 8px;
+        font-weight: 700;
+      }
+
+      /* ===== PROFILE CARD ===== */
+      .profile-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px 6px 28px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+        transition: background 0.15s;
+        min-height: 40px;
+      }
+      .profile-card:hover {
+        background: var(--bg-hover);
+      }
+      .profile-card:last-child {
+        border-bottom: none;
+      }
+      .profile-card--active {
+        background: rgba(52, 211, 153, 0.04);
+        border-left: 2px solid var(--accent-green);
+        padding-left: 26px;
+      }
+
+      .profile-card__avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--accent-purple);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+      .profile-card__avatar--active {
+        background: var(--accent-green);
+      }
+
+      .profile-card__info {
+        flex: 1;
+        min-width: 0;
+      }
+      .profile-card__name {
+        font-size: 12px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .profile-card__meta {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 1px;
+        flex-wrap: wrap;
+      }
+      .profile-card__age {
+        font-size: 9px;
+        color: var(--text-dim);
+      }
+      .profile-card__age--warn {
+        color: var(--accent-orange);
+      }
+      .profile-card__actions {
+        display: flex;
+        gap: 4px;
+        flex-shrink: 0;
+      }
+
+      /* ===== BADGES ===== */
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 9px;
+        font-weight: 600;
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+      .badge--active {
+        background: rgba(52, 211, 153, 0.12);
+        color: var(--accent-green);
+      }
+      .badge--expired {
+        background: rgba(248, 113, 113, 0.12);
+        color: var(--accent-red);
+      }
+
+      /* ===== EMPTY STATE ===== */
+      .empty-state {
+        text-align: center;
+        padding: 20px 14px;
+        color: var(--text-dim);
+      }
+      .empty-state__icon {
+        font-size: 24px;
+        margin-bottom: 6px;
+      }
+      .empty-state__text {
+        font-size: 11px;
+        line-height: 1.6;
+      }
+
+      /* ===== FOOTER ===== */
+      .footer {
+        display: flex;
+        gap: 6px;
+        padding: 8px 14px;
+        background: var(--bg-secondary);
+        border-top: 1px solid var(--border);
+      }
+      .footer .btn {
+        flex: 1;
+        padding: 6px 8px;
+        font-size: 10px;
+        border-radius: var(--radius);
+      }
+      .btn--export {
+        background: rgba(91, 141, 239, 0.1);
+        color: var(--accent-blue);
+        border: 1px solid rgba(91, 141, 239, 0.15);
+      }
+      .btn--export:hover:not(:disabled) {
+        background: rgba(91, 141, 239, 0.2);
+      }
+      .btn--import {
+        background: rgba(255, 162, 51, 0.1);
+        color: var(--accent-orange);
+        border: 1px solid rgba(255, 162, 51, 0.15);
+      }
+      .btn--import:hover:not(:disabled) {
+        background: rgba(255, 162, 51, 0.2);
+      }
+
+      /* ===== TOAST ===== */
+      .toast {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+        padding: 8px 12px;
+        border-radius: var(--radius);
+        font-size: 11px;
+        font-weight: 600;
+        text-align: center;
+        z-index: 1000;
+        transform: translateY(80px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        pointer-events: none;
+      }
+      .toast--visible {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      .toast--success {
+        background: rgba(52, 211, 153, 0.15);
+        color: var(--accent-green);
+        border: 1px solid rgba(52, 211, 153, 0.2);
+        backdrop-filter: blur(12px);
+      }
+      .toast--error {
+        background: rgba(248, 113, 113, 0.15);
+        color: var(--accent-red);
+        border: 1px solid rgba(248, 113, 113, 0.2);
+        backdrop-filter: blur(12px);
+      }
+      .toast--loading {
+        background: rgba(139, 92, 246, 0.15);
+        color: var(--accent-purple);
+        border: 1px solid rgba(139, 92, 246, 0.2);
+        backdrop-filter: blur(12px);
+      }
+
+      .spinner {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-top-color: currentColor;
+        border-radius: 50%;
+        animation: spin 0.6s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- HEADER -->
+    <div class="header">
+      <span class="header__logo">⚡</span>
+      <div class="header__text">
+        <div class="header__title">Hot-Swapper</div>
+        <div id="originDisplay" class="header__origin">
+          <span class="header__dot"></span> —
+        </div>
+      </div>
+    </div>
+
+    <!-- CURRENT ACCOUNT -->
+    <div id="currentAccount" class="current-account">
+      <span class="current-account__icon">👤</span>
+      <div class="current-account__info">
+        <div class="current-account__label">Đang đăng nhập</div>
+        <div id="currentAccName" class="current-account__name">—</div>
+      </div>
+    </div>
+
+    <!-- ACTION SECTION -->
+    <div id="actionSection" class="save-section" style="display: none">
+      <div class="save-section__row">
+        <input
+          type="text"
+          id="profileNameInput"
+          class="input"
+          placeholder="Nhập tên nick..."
+          maxlength="40"
+          title="Nhập tên để lưu phiên đăng nhập"
+        />
+      </div>
+      <div class="save-section__row" style="margin-top: 6px; gap: 6px">
+        <button
+          id="saveBtn"
+          class="btn btn--save"
+          title="Lưu phiên đăng nhập hiện tại (không thay đổi gì trên trang)"
+        >
+          💾 Lưu
+        </button>
+        <button
+          id="addNewBtn"
+          class="btn btn--add"
+          title="Lưu phiên hiện tại → Xóa sạch dữ liệu → Tải lại trang để đăng nhập tài khoản mới"
+        >
+          ➕ Thêm mới
+        </button>
+      </div>
+    </div>
+
+    <!-- PROFILE TREE -->
+    <div id="profileTree"></div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <button
+        id="exportBtn"
+        class="btn btn--export"
+        title="Xuất tất cả profile ra file JSON backup"
+      >
+        📤 Xuất backup
+      </button>
+      <button
+        id="importBtn"
+        class="btn btn--import"
+        title="Nhập và merge profile từ 1 hoặc nhiều file JSON"
+      >
+        📥 Nhập & Merge
+      </button>
+      <input
+        type="file"
+        id="importFileInput"
+        accept=".json"
+        multiple
+        style="display: none"
+      />
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast"></div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
