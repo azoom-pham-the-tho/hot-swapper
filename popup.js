@@ -44,10 +44,6 @@
   const STORAGE_PREFIX = 'session_';
   const WARN_AGE_MS = 7 * 24 * 60 * 60 * 1000; // 7 ngày
 
-  /** GitHub repo for auto-update */
-  const GITHUB_REPO = 'azoom-pham-the-tho/hot-swapper';
-  const CURRENT_VERSION = chrome.runtime.getManifest().version;
-
   // ============================================================
   //  DOM REFS
   // ============================================================
@@ -69,14 +65,6 @@
   const $pasteTextarea = document.getElementById('pasteTextarea');
   const $pasteConfirmBtn = document.getElementById('pasteConfirmBtn');
   const $pasteCancelBtn = document.getElementById('pasteCancelBtn');
-  const $updateBtn = document.getElementById('updateBtn');
-  const $updateBtnText = document.getElementById('updateBtnText');
-  const $updateOverlay = document.getElementById('updateOverlay');
-  const $updateModalTitle = document.getElementById('updateModalTitle');
-  const $updateModalVersion = document.getElementById('updateModalVersion');
-  const $downloadBtn = document.getElementById('downloadBtn');
-  const $reloadExtBtn = document.getElementById('reloadExtBtn');
-  const $updateCloseBtn = document.getElementById('updateCloseBtn');
 
   // ============================================================
   //  STATE
@@ -1073,118 +1061,7 @@
       console.error('[PasteImport] JSON parse error:', err);
     }
   });
-  // ============================================================
-  //  AUTO-UPDATE
-  // ============================================================
-
-  /** So sánh semver đơn giản: trả về 1 nếu a > b, -1 nếu a < b, 0 nếu bằng */
-  function compareSemver(a, b) {
-    const pa = a.replace(/^v/, '').split('.').map(Number);
-    const pb = b.replace(/^v/, '').split('.').map(Number);
-    for (let i = 0; i < 3; i++) {
-      const va = pa[i] || 0;
-      const vb = pb[i] || 0;
-      if (va > vb) return 1;
-      if (va < vb) return -1;
-    }
-    return 0;
-  }
-
-  let latestRelease = null;
-
-  async function checkForUpdate() {
-    try {
-      $updateBtnText.textContent = '...';
-      const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`, {
-        headers: { 'Accept': 'application/vnd.github.v3+json' },
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const release = await res.json();
-      const remoteVersion = release.tag_name; // e.g. "v1.2.0"
-
-      if (compareSemver(remoteVersion, CURRENT_VERSION) > 0) {
-        // Có bản mới
-        latestRelease = release;
-        $updateBtn.classList.add('has-update');
-        $updateBtnText.textContent = release.tag_name;
-        showToast(`🆕 Có bản mới ${release.tag_name}!`, 'success', 3000);
-      } else {
-        $updateBtnText.textContent = `v${CURRENT_VERSION} ✓`;
-        latestRelease = null;
-      }
-    } catch (err) {
-      console.warn('[Update] Check failed:', err);
-      $updateBtnText.textContent = 'Update';
-    }
-  }
-
-  function showUpdateModal() {
-    if (latestRelease) {
-      $updateModalTitle.textContent = `🆕 Có bản mới ${latestRelease.tag_name}!`;
-      $updateModalVersion.innerHTML = `
-        Phiên bản hiện tại: <strong>v${CURRENT_VERSION}</strong><br>
-        Phiên bản mới: <strong>${latestRelease.tag_name}</strong><br><br>
-        Bấm <strong>"Tải bản mới"</strong> → giải nén đè vào thư mục extension → bấm <strong>"Reload"</strong>.
-      `;
-      $downloadBtn.style.display = '';
-    } else {
-      $updateModalTitle.textContent = `✅ Đã cập nhật mới nhất`;
-      $updateModalVersion.innerHTML = `
-        Phiên bản hiện tại: <strong>v${CURRENT_VERSION}</strong><br><br>
-        Bạn vẫn có thể bấm <strong>"Reload"</strong> nếu vừa cập nhật file thủ công.
-      `;
-      $downloadBtn.style.display = 'none';
-    }
-    $updateOverlay.classList.add('update-overlay--visible');
-  }
-
-  // ======== EVENT: Update button ========
-  $updateBtn.addEventListener('click', () => {
-    showUpdateModal();
-  });
-
-  $updateCloseBtn.addEventListener('click', () => {
-    $updateOverlay.classList.remove('update-overlay--visible');
-  });
-
-  $updateOverlay.addEventListener('click', (e) => {
-    if (e.target === $updateOverlay) {
-      $updateOverlay.classList.remove('update-overlay--visible');
-    }
-  });
-
-  $downloadBtn.addEventListener('click', () => {
-    if (!latestRelease) return;
-    // Tìm file .zip trong release assets
-    const zipAsset = latestRelease.assets?.find(a => a.name.endsWith('.zip'));
-    if (zipAsset) {
-      // Download trực tiếp qua chrome.downloads
-      chrome.downloads.download({
-        url: zipAsset.browser_download_url,
-        filename: zipAsset.name,
-        saveAs: true,
-      }, (downloadId) => {
-        if (downloadId) {
-          showToast(`📥 Đang tải ${zipAsset.name}...`, 'success', 3000);
-        } else {
-          showToast('❌ Không thể tải file!', 'error');
-        }
-      });
-    } else {
-      // Fallback: mở trang release trên GitHub
-      chrome.tabs.create({ url: latestRelease.html_url });
-    }
-  });
-
-  $reloadExtBtn.addEventListener('click', () => {
-    showToast('🔄 Đang reload extension...', 'loading', 0);
-    setTimeout(() => {
-      chrome.runtime.reload();
-    }, 500);
-  });
 
   // ======== START ========
   await init();
-  // Tự check update khi mở popup
-  checkForUpdate();
 })();

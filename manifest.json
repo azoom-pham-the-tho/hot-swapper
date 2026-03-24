@@ -9,8 +9,7 @@
     "activeTab",
     "tabs",
     "scripting",
-    "browsingData",
-    "downloads"
+    "browsingData"
   ],
   "host_permissions": [
     "<all_urls>"

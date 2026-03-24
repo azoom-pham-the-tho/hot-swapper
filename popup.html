@@ -89,112 +89,6 @@
         background: var(--accent-green);
         display: inline-block;
       }
-      .btn--update {
-        position: relative;
-        background: rgba(91, 141, 239, 0.1);
-        color: var(--accent-blue);
-        border: 1px solid rgba(91, 141, 239, 0.2);
-        padding: 4px 8px;
-        font-size: 10px;
-        border-radius: 6px;
-      }
-      .btn--update:hover:not(:disabled) {
-        background: rgba(91, 141, 239, 0.2);
-      }
-      .btn--update .update-dot {
-        display: none;
-        position: absolute;
-        top: -3px;
-        right: -3px;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--accent-red);
-        border: 2px solid #1a1a2e;
-        animation: pulse-dot 1.5s infinite;
-      }
-      .btn--update.has-update .update-dot {
-        display: block;
-      }
-      @keyframes pulse-dot {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.4; }
-      }
-
-      /* ===== UPDATE MODAL ===== */
-      .update-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0.7);
-        backdrop-filter: blur(4px);
-        z-index: 950;
-        justify-content: center;
-        align-items: center;
-        padding: 12px;
-      }
-      .update-overlay--visible {
-        display: flex;
-      }
-      .update-modal {
-        background: var(--bg-secondary);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        width: 100%;
-        max-width: 340px;
-        padding: 14px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      }
-      .update-modal__title {
-        font-size: 14px;
-        font-weight: 700;
-        color: var(--accent-green);
-        margin-bottom: 6px;
-      }
-      .update-modal__version {
-        font-size: 11px;
-        color: var(--text-secondary);
-        margin-bottom: 10px;
-        line-height: 1.5;
-      }
-      .update-modal__version strong {
-        color: var(--text-primary);
-      }
-      .update-modal__actions {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-      .btn--download {
-        width: 100%;
-        background: linear-gradient(135deg, #5b8def, #3d6dd6);
-        color: #fff;
-        padding: 10px 12px;
-        font-size: 12px;
-      }
-      .btn--download:hover:not(:disabled) {
-        background: linear-gradient(135deg, #3d6dd6, #2d5bc6);
-      }
-      .btn--reload {
-        width: 100%;
-        background: rgba(52, 211, 153, 0.15);
-        color: var(--accent-green);
-        border: 1px solid rgba(52, 211, 153, 0.25);
-        padding: 10px 12px;
-        font-size: 12px;
-      }
-      .btn--reload:hover:not(:disabled) {
-        background: rgba(52, 211, 153, 0.25);
-      }
-      .btn--update-close {
-        width: 100%;
-        background: rgba(255, 255, 255, 0.06);
-        color: var(--text-secondary);
-        border: 1px solid var(--border);
-        padding: 8px 12px;
-        font-size: 11px;
-      }
-
       /* ===== CURRENT ACCOUNT (compact) ===== */
       .current-account {
         display: none;
@@ -651,10 +545,6 @@
           <span class="header__dot"></span> —
         </div>
       </div>
-      <button id="updateBtn" class="btn btn--update" title="Kiểm tra cập nhật">
-        🔄 <span id="updateBtnText">Update</span>
-        <span class="update-dot"></span>
-      </button>
     </div>
 
     <!-- CURRENT ACCOUNT -->
@@ -747,19 +637,6 @@
         <div class="paste-modal__actions">
           <button id="pasteCancelBtn" class="btn btn--paste-cancel">Hủy</button>
           <button id="pasteConfirmBtn" class="btn btn--paste-confirm">📥 Nhập</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- UPDATE MODAL -->
-    <div id="updateOverlay" class="update-overlay">
-      <div class="update-modal">
-        <div id="updateModalTitle" class="update-modal__title">🆕 Có bản mới!</div>
-        <div id="updateModalVersion" class="update-modal__version"></div>
-        <div class="update-modal__actions">
-          <button id="downloadBtn" class="btn btn--download">📥 Tải bản mới</button>
-          <button id="reloadExtBtn" class="btn btn--reload">🔄 Reload Extension (sau khi giải nén)</button>
-          <button id="updateCloseBtn" class="btn btn--update-close">Đóng</button>
         </div>
       </div>
     </div>
