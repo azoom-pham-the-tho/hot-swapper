@@ -35,25 +35,41 @@ jobs:
       - name: Tạo GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          name: "Hot-Swapper ${{ steps.version.outputs.VERSION }}"
+          name: "⚡ Hot-Swapper ${{ steps.version.outputs.VERSION }}"
           body: |
-            ## 🔥 Hot-Swapper ${{ steps.version.outputs.VERSION }}
+            ## ⚡ Hot-Swapper ${{ steps.version.outputs.VERSION }} — Chuyển đổi nhanh tài khoản profile
 
-            ${{ steps.desc.outputs.DESC }}
+            Quản lý nhiều tài khoản Facebook, Chợ Tốt, hay **bất kỳ trang nào**?
+            Hot-Swapper giúp bạn lưu & chuyển đổi phiên đăng nhập chỉ trong **1 click** — không logout, không OTP, không checkpoint.
 
-            ### 📦 Cài đặt
-            1. Tải file `HotSwapper_${{ steps.version.outputs.VERSION }}.zip` bên dưới
+            ---
+
+            ### 🏗️ Luồng xử lý 3 bước
+            ```
+            EXTRACT (lấy cookies + storage) → NUKE (xóa sạch fingerprint) → INJECT (bơm session mới)
+            ```
+
+            ### ✨ Tính năng chính
+            - 🔄 **1 click chuyển đổi** tài khoản, không cần logout
+            - 🔐 **Bypass OTP/Checkpoint** bằng cách nuke toàn bộ dấu vết trước khi inject
+            - 🌳 **Tree UI** nhóm tài khoản theo trang web
+            - 🧠 **Cookie Fingerprint** tự động nhận diện account đang active
+            - 🌐 **Cross-site swap**: đang ở FB → bấm nick Chợ Tốt → tự chuyển
+            - 📦 **Export/Import** backup với smart merge (trùng tên → giữ bản mới hơn)
+
+            ---
+
+            ### 📥 Cài đặt
+
+            1. Tải file **`HotSwapper_${{ steps.version.outputs.VERSION }}.zip`** ở phần Assets bên dưới ⬇️
             2. Giải nén ra thư mục
-            3. Mở `chrome://extensions` → bật **Developer mode**
+            3. Mở `chrome://extensions` → bật **Developer mode** (góc phải)
             4. Bấm **Load unpacked** → chọn thư mục vừa giải nén
-            5. Done ✅
+            5. Bấm icon ⚡ trên toolbar → Bắt đầu sử dụng!
 
-            ### ✨ Tính năng
-            - Lưu & chuyển đổi nhanh tài khoản trên mọi trang web
-            - Cookie fingerprint matching tự động nhận diện account
-            - Tree UI nhóm theo site
-            - Export/Import backup với smart merge
-            - Cross-site swap
+            ---
+
+            > 💡 Xem [README](../../#readme) để biết hướng dẫn sử dụng chi tiết.
           files: HotSwapper_${{ steps.version.outputs.VERSION }}.zip
           draft: false
           prerelease: false
