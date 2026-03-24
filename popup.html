@@ -30,8 +30,10 @@
 
       body {
         width: 360px;
-        max-height: 520px;
-        overflow-y: auto;
+        height: 520px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
         background: var(--bg-primary);
         color: var(--text-primary);
         font-family:
@@ -39,10 +41,15 @@
         font-size: 13px;
         line-height: 1.4;
       }
-      body::-webkit-scrollbar {
+      .main-scroll {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
+      }
+      .main-scroll::-webkit-scrollbar {
         width: 3px;
       }
-      body::-webkit-scrollbar-thumb {
+      .main-scroll::-webkit-scrollbar-thumb {
         background: rgba(255, 255, 255, 0.08);
         border-radius: 2px;
       }
@@ -436,9 +443,100 @@
           transform: rotate(360deg);
         }
       }
+
+      /* ===== PASTE MODAL ===== */
+      .paste-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        z-index: 900;
+        justify-content: center;
+        align-items: center;
+        padding: 12px;
+      }
+      .paste-overlay--visible {
+        display: flex;
+      }
+      .paste-modal {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        width: 100%;
+        max-width: 340px;
+        padding: 14px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+      }
+      .paste-modal__title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+      }
+      .paste-modal__desc {
+        font-size: 10px;
+        color: var(--text-dim);
+        margin-bottom: 10px;
+        line-height: 1.5;
+      }
+      .paste-modal__textarea {
+        width: 100%;
+        height: 100px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text-primary);
+        padding: 8px 10px;
+        font-size: 11px;
+        font-family: 'Consolas', 'Monaco', monospace;
+        outline: none;
+        resize: none;
+        transition: border-color 0.2s;
+      }
+      .paste-modal__textarea:focus {
+        border-color: var(--accent-purple);
+      }
+      .paste-modal__textarea::placeholder {
+        color: var(--text-dim);
+      }
+      .paste-modal__actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .btn--paste-confirm {
+        flex: 1;
+        background: linear-gradient(135deg, #ffa233, #e68a00);
+        color: #fff;
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+      .btn--paste-confirm:hover:not(:disabled) {
+        background: linear-gradient(135deg, #e68a00, #cc7700);
+      }
+      .btn--paste-cancel {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text-secondary);
+        border: 1px solid var(--border);
+        padding: 8px 12px;
+        font-size: 12px;
+      }
+      .btn--paste-cancel:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .btn--paste {
+        background: rgba(139, 92, 246, 0.1);
+        color: var(--accent-purple);
+        border: 1px solid rgba(139, 92, 246, 0.15);
+      }
+      .btn--paste:hover:not(:disabled) {
+        background: rgba(139, 92, 246, 0.2);
+      }
     </style>
   </head>
   <body>
+    <div class="main-scroll">
     <!-- HEADER -->
     <div class="header">
       <span class="header__logo">⚡</span>
@@ -491,6 +589,7 @@
 
     <!-- PROFILE TREE -->
     <div id="profileTree"></div>
+    </div>
 
     <!-- FOOTER -->
     <div class="footer">
@@ -499,14 +598,21 @@
         class="btn btn--export"
         title="Xuất tất cả profile ra file JSON backup"
       >
-        📤 Xuất backup
+        📤 Xuất
       </button>
       <button
         id="importBtn"
         class="btn btn--import"
-        title="Nhập và merge profile từ 1 hoặc nhiều file JSON"
+        title="Nhập từ file JSON (không hỗ trợ trên Chromebook)"
       >
-        📥 Nhập & Merge
+        📥 File
+      </button>
+      <button
+        id="pasteBtn"
+        class="btn btn--paste"
+        title="Dán nội dung JSON đã copy — hoạt động trên mọi thiết bị"
+      >
+        📋 Dán JSON
       </button>
       <input
         type="file"
@@ -515,6 +621,25 @@
         multiple
         style="display: none"
       />
+    </div>
+
+    <!-- PASTE MODAL -->
+    <div id="pasteOverlay" class="paste-overlay">
+      <div class="paste-modal">
+        <div class="paste-modal__title">📋 Dán nội dung JSON</div>
+        <div class="paste-modal__desc">
+          Mở file backup .json bằng trình soạn thảo → Copy toàn bộ nội dung → Dán vào đây.
+        </div>
+        <textarea
+          id="pasteTextarea"
+          class="paste-modal__textarea"
+          placeholder='Dán nội dung JSON vào đây... {"session_...": {...}}'
+        ></textarea>
+        <div class="paste-modal__actions">
+          <button id="pasteCancelBtn" class="btn btn--paste-cancel">Hủy</button>
+          <button id="pasteConfirmBtn" class="btn btn--paste-confirm">📥 Nhập</button>
+        </div>
+      </div>
     </div>
 
     <!-- TOAST -->

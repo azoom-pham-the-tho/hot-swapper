@@ -59,6 +59,11 @@
   const $exportBtn = document.getElementById('exportBtn');
   const $importBtn = document.getElementById('importBtn');
   const $importFileInput = document.getElementById('importFileInput');
+  const $pasteBtn = document.getElementById('pasteBtn');
+  const $pasteOverlay = document.getElementById('pasteOverlay');
+  const $pasteTextarea = document.getElementById('pasteTextarea');
+  const $pasteConfirmBtn = document.getElementById('pasteConfirmBtn');
+  const $pasteCancelBtn = document.getElementById('pasteCancelBtn');
 
   // ============================================================
   //  STATE
@@ -114,6 +119,7 @@
     $addNewBtn.disabled = busy;
     $exportBtn.disabled = busy;
     $importBtn.disabled = busy;
+    $pasteBtn.disabled = busy;
     document.querySelectorAll('.btn--use, .btn--delete').forEach(b => {
       b.disabled = busy;
     });
@@ -753,10 +759,28 @@
     showToast(`📤 Đã xuất ${count} profile!`, 'success');
   }
 
-  async function importProfiles(file) {
+  /**
+   * Import profiles từ parsed JSON object hoặc File.
+   * @param {Object|File} source - parsed JSON object hoặc File object
+   */
+  async function importProfiles(source) {
     try {
-      const text = await file.text();
-      const importData = JSON.parse(text);
+      let importData;
+
+      if (source instanceof File) {
+        // Đọc từ File object (file picker)
+        const text = await source.text();
+        importData = JSON.parse(text);
+      } else if (typeof source === 'object' && source !== null) {
+        // Đã là parsed JSON object (từ paste)
+        importData = source;
+      } else if (typeof source === 'string') {
+        // Raw JSON string
+        importData = JSON.parse(source);
+      } else {
+        showToast('⚠️ Dữ liệu không hợp lệ!', 'error');
+        return;
+      }
 
       // Lọc profiles hợp lệ
       const allImported = {};
@@ -988,13 +1012,52 @@
   // ======== EVENT: Export ========
   $exportBtn.addEventListener('click', () => exportProfiles());
 
-  // ======== EVENT: Import ========
+  // ======== EVENT: Import (file picker — fallback) ========
   $importBtn.addEventListener('click', () => $importFileInput.click());
   $importFileInput.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       await importProfiles(file);
       $importFileInput.value = '';
+    }
+  });
+
+  // ======== EVENT: Paste JSON (hoạt động trên mọi thiết bị) ========
+  $pasteBtn.addEventListener('click', () => {
+    $pasteTextarea.value = '';
+    $pasteOverlay.classList.add('paste-overlay--visible');
+    setTimeout(() => $pasteTextarea.focus(), 100);
+  });
+
+  $pasteCancelBtn.addEventListener('click', () => {
+    $pasteOverlay.classList.remove('paste-overlay--visible');
+    $pasteTextarea.value = '';
+  });
+
+  // Đóng modal khi click overlay background
+  $pasteOverlay.addEventListener('click', (e) => {
+    if (e.target === $pasteOverlay) {
+      $pasteOverlay.classList.remove('paste-overlay--visible');
+      $pasteTextarea.value = '';
+    }
+  });
+
+  $pasteConfirmBtn.addEventListener('click', async () => {
+    const rawText = $pasteTextarea.value.trim();
+    if (!rawText) {
+      showToast('⚠️ Chưa dán nội dung JSON!', 'error');
+      $pasteTextarea.focus();
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(rawText);
+      $pasteOverlay.classList.remove('paste-overlay--visible');
+      $pasteTextarea.value = '';
+      await importProfiles(parsed);
+    } catch (err) {
+      showToast('❌ JSON không hợp lệ! Kiểm tra lại nội dung đã dán.', 'error');
+      console.error('[PasteImport] JSON parse error:', err);
     }
   });
 
